@@ -1,0 +1,33 @@
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        <header
+            class="flex items-center whitespace-nowrap border-b border-solid border-slate-200 dark:border-primary/10 px-10 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+            <div class="flex items-center gap-8 text-primary">
+                <div class="size-6">
+                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M13.8261 17.4264C16.7203 18.1174 20.2244 18.5217 24 18.5217C27.7756 18.5217 31.2797 18.1174 34.1739 17.4264C36.9144 16.7722 39.9967 15.2331 41.3563 14.1648L24.8486 40.6391C24.4571 41.267 23.5429 41.267 23.1514 40.6391L6.64374 14.1648C8.00331 15.2331 11.0856 16.7722 13.8261 17.4264Z"
+                            fill="currentColor"></path>
+                    </svg>
+                </div>
+                <a href="index.php?page=controller_home"
+                    class="text-slate-900 dark:text-slate-100 text-xl font-bold no-underline">Tickiticket</a>
+                <a class="text-slate-700 dark:text-slate-300 text-base font-medium hover:text-primary transition-colors no-underline"
+                    href="index.php?page=controller_shop">Eventos</a>
+            </div>
+            <div class="relative w-full max-w-3xl ml-auto">
+                <div class="flex items-center gap-2">
+                    <select class="search_brand rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary"></select>
+                    <select class="search_category rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary"></select>
+                    <div class="relative flex-1">
+                        <input id="autocom" type="text" placeholder="Ciudad"
+                            class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <div id="search_auto"
+                            style="display:none; position:absolute; top:calc(100% + 6px); left:0; width:100%; z-index:70; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 10px 24px rgba(15,23,42,0.12); max-height:220px; overflow-y:auto;"></div>
+                    </div>
+                    <button id="search-btn"
+                        class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-black hover:brightness-95">Buscar</button>
+                </div>
+            </div>
+
+        </header>

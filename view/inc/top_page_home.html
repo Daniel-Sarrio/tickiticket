@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+
+<head>
+	<meta charset="utf-8">
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+	<title>Tickiticket</title>
+
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+	<link href="view/css/style.css" rel="stylesheet" type="text/css" />
+	<script src="module/home/model/controller_home.js"></script>
+	<script src="view/js/promises.js"></script>
+	<script src="/tickiticket_v7/module/search/model/ctrl_search.js"></script>
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap"
+		rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
+		rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+</head>
+<script id="tailwind-config">
+	tailwind.config = {
+		darkMode: "class",
+		theme: {
+			extend: {
+				colors: {
+					"primary": "#11d411",
+					"background-light": "#f6f8f6",
+					"background-dark": "#102210",
+				},
+				fontFamily: {
+					"display": ["Lexend"]
+				},
+				borderRadius: {
+					"DEFAULT": "0.25rem",
+					"lg": "0.5rem",
+					"xl": "0.75rem",
+					"full": "9999px"
+				},
+			},
+		},
+	}
+</script>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
