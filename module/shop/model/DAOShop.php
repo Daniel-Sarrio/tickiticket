@@ -81,6 +81,43 @@ class DAOShop
         connect::close($conexion);
         return $res;
     }
+
+    function select_eventos_relacionados($id_categoria, $id_evento, $inicio, $cantidad)
+    {
+        $sql = "SELECT * FROM eventos
+            WHERE id_categoria = :id_categoria
+            AND id_evento <> :id_evento
+            ORDER BY fecha_evento ASC
+            LIMIT :inicio, :cantidad";
+
+        $conexion = connect::con();
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':id_categoria', $id_categoria, PDO::PARAM_INT);
+        $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+        $stmt->bindParam(':inicio', $inicio, PDO::PARAM_INT);
+        $stmt->bindParam(':cantidad', $cantidad, PDO::PARAM_INT);
+        $stmt->execute();
+        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        connect::close($conexion);
+        return $res;
+    }
+
+    function count_eventos_relacionados($id_categoria, $id_evento)
+    {
+        $sql = "SELECT COUNT(*) AS total FROM eventos
+            WHERE id_categoria = :id_categoria
+            AND id_evento <> :id_evento";
+
+        $conexion = connect::con();
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':id_categoria', $id_categoria, PDO::PARAM_INT);
+        $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+        $stmt->execute();
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        connect::close($conexion);
+        return $res['total'];
+    }
+
     function select_all_extras()
     {
         $sql = "SELECT id_extra, nombre_extra FROM extras ORDER BY nombre_extra ASC";

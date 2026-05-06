@@ -105,6 +105,24 @@ switch ($_GET['op']) {
         }
         break;
 
+    case 'eventos_relacionados':
+        $daoshop = new DAOShop();
+        $eventos = $daoshop->select_eventos_relacionados($_POST['id_categoria'], $_POST['id_evento'], $_POST['inicio'], 3);
+
+        if (!empty($eventos)) {
+            echo json_encode($eventos);
+        }
+        else {
+            echo json_encode("error");
+        }
+        break;
+
+    case 'count_eventos_relacionados':
+        $daoshop = new DAOShop();
+        $total = $daoshop->count_eventos_relacionados($_POST['id_categoria'], $_POST['id_evento']);
+        echo json_encode($total);
+        break;
+
     case 'filter';
         $daoshop = new DAOShop();
         $total_prod = isset($_POST['offset']) ? $_POST['offset'] : 0;

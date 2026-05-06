@@ -11,6 +11,7 @@ var eventsLeafletMap = null;
 var detailLeafletMap = null;
 var swiperInstances = [];
 var shopSearchRequest = 0;
+var cargando_relacionados = false;
 
 function ensureLeafletLoaded() {
     if (window.L && typeof window.L.map === 'function') {
@@ -329,23 +330,85 @@ function pagination() {
                 
                 console.log('urlList:', urlList);
                 ajaxForSearch(urlList, filtro, offset, limit);
-
-                    // var filtro = JSON.parse(localStorage.getItem('filter') || false);
-                    // if (filtro) {   
-                    //     ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=filter", filtro);
-                    // } else {
-                    //     ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events");
-                    // }
             });
         }).catch(function (err) {
             console.log('Error al obtener NumEvents:', err);
         });
+}
+function pintar_eventos_relacionados(inicio, id_categoria, id_evento, total_eventos) {
+    cargando_relacionados = true;
+
+    ajaxPromise('/tickiticket_v7/module/shop/controller/controller_shop.php?op=eventos_relacionados', 'POST', 'JSON', {
+        'id_categoria': id_categoria,
+        'id_evento': id_evento,
+        'inicio': inicio
+    }).then(function (data) {
+        if (data != "error") {
+            for (var i = 0; i < data.length; i++) {
+                var imgUrl = data[i].imagen_evento.replace('/opt/lampp/htdocs/tickiticket_v7', '/tickiticket_v7');
+
+                $('#content_eventos_relacionados').append(`
+                    <div style="border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; background:#f8fafc;">
+                        <div style="height:180px; width:100%; background-image:url(${imgUrl}); background-size:cover; background-position:center;"></div>
+                        <div style="padding:18px;">
+                            <h3 style="font-size:1rem; font-weight:800; margin-bottom:8px; color:#000;">${data[i].nombre_evento}</h3>
+                            <p style="color:#000; font-size:0.9rem; margin-bottom:4px;">Fecha: ${data[i].fecha_evento}</p>
+                            <button class="btn_details" id="${data[i].id_evento}" style="width:100%; margin-top:14px; padding:10px; background:#22c55e; color:#000; font-weight:700; border:none; border-radius:8px; cursor:pointer;">Ver Detalles</button>
+                        </div>
+                    </div>
+                `);
+            }
+        }
+
+        if ((inicio + 3) >= total_eventos) {
+            $(window).off('scroll.eventos_relacionados');
+        }
+
+        cargando_relacionados = false;
+    }).catch(function () {
+        cargando_relacionados = false;
+        console.log('error eventos relacionados');
+    });
+}
+
+function scroll_eventos_relacionados(id_categoria, id_evento) {
+    var items = 0;
+    
+    $('#content_eventos_relacionados').empty();
+    $(window).off('scroll.eventos_relacionados');
+
+    ajaxPromise('/tickiticket_v7/module/shop/controller/controller_shop.php?op=count_eventos_relacionados', 'POST', 'JSON', {
+        'id_categoria': id_categoria,
+        'id_evento': id_evento
+    }).then(function (total_eventos) {
+        total_eventos = parseInt(total_eventos);
+
+        if (total_eventos == 0) {
+            $('#eventos_relacionados').hide();
+            return;
+        }
+
+        $('#eventos_relacionados').show();
+        pintar_eventos_relacionados(items, id_categoria, id_evento, total_eventos);
+
+        $(window).on('scroll.eventos_relacionados', function () {
+            var final_pagina = $(window).scrollTop() + $(window).height() >= $(document).height() - 200;
+
+            if (final_pagina && !cargando_relacionados) {
+                items = items + 3;
+                pintar_eventos_relacionados(items, id_categoria, id_evento, total_eventos);
+            }
+        });
+    }).catch(function () {
+        console.log('error total eventos relacionados');
+    });
 }
 
 function loadDetails(id_evento) {
     ajaxPromise(`/tickiticket_v7/module/shop/controller/controller_shop.php?op=details_event&id=${id_evento}`, 'GET', 'JSON')
         .then(function (data) {
             $('#list_events_shop').hide();
+            $('#pagination').hide();
             $('#detail_event').show();
             $('.date_event_detail').empty();
 
@@ -439,6 +502,11 @@ function loadDetails(id_evento) {
                         </button>
                     </div>
                 </div>
+
+                <div id="eventos_relacionados" style="max-width:980px; margin:26px auto 40px auto;">
+                    <h3 style="font-size:1.35rem; font-weight:900; color:#fff; margin-bottom:18px;">Eventos relacionados</h3>
+                    <div id="content_eventos_relacionados" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:20px;"></div>
+                </div>
             `);
 
             new Swiper('.swiper-detail-imgs', {
@@ -484,6 +552,7 @@ function loadDetails(id_evento) {
             }
 
             geolocalizado_detail(event);
+            scroll_eventos_relacionados(event.id_categoria, event.id_evento);
 
         }).catch(function (err) {
             console.log('Error detalles:', err);
@@ -499,8 +568,10 @@ function clicks() {
     });
 
     $(document).on('click', '#btn_back', function () {
+        $(window).off('scroll.eventos_relacionados');
         $('#detail_event').hide();
         $('#list_events_shop').show();
+        $('#pagination').show();
         $('#map_events_title').show();
         $('#map_events').show();
         initShopList();
@@ -734,6 +805,6 @@ $(document).ready(function () {
     if (openDetailFromStorage()) {
         return;
     }
-//pagination();
+
     initShopList();
 });
