@@ -25,10 +25,9 @@ switch ($_GET['op']) {
         break;
 
     case 'all_events':
-
         try {
             $daoshop = new DAOShop();
-            $events = $daoshop->select_all_events(0, 10);
+            $events = $daoshop->select_all_events($_POST['offset'], $_POST['limit']);
             $all_images = $daoshop->select_imgs_all_events();
         }
         catch (Exception $e) {
@@ -49,6 +48,22 @@ switch ($_GET['op']) {
                 $event['imagenes'] = isset($imgs_by_event[$eid]) ? $imgs_by_event[$eid] : array();
             }
             echo json_encode($events);
+        }
+        else {
+            echo json_encode("error");
+        }
+        break;
+    case 'all_events_count':
+        try {
+            $daoshop = new DAOShop();
+            $events_count = $daoshop->count_events();
+        }
+        catch (Exception $e) {
+            echo json_encode("error");
+            exit();
+        }
+        if (!empty($events_count)) {
+            echo json_encode($events_count);
         }
         else {
             echo json_encode("error");
@@ -92,7 +107,11 @@ switch ($_GET['op']) {
 
     case 'filter';
         $daoshop = new DAOShop();
-        $selSlide = $daoshop -> filters($_POST['filter']);
+        $total_prod = isset($_POST['offset']) ? $_POST['offset'] : 0;
+        $items_page = isset($_POST['limit']) ? $_POST['limit'] : 9;
+        
+        $selSlide = $daoshop->filters($_POST['filter'], $total_prod, $items_page);
+        
         if (!empty($selSlide)) {
             echo json_encode($selSlide);
         }
@@ -100,7 +119,16 @@ switch ($_GET['op']) {
             echo "error";
         }
         break;
-
+    case 'filters_count';
+        $daoshop = new DAOShop();
+        $res = 0;
+        if (isset($_POST['filter']) && !empty($_POST['filter'])) {
+            $res = $daoshop->count_events_filters($_POST['filter']);
+        } else {
+            $res = $daoshop->count_events();
+        }
+        echo json_encode($res);
+        break;
     default:
         include($path . "view/inc/error404.php");
         break;

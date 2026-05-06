@@ -103,7 +103,7 @@ class DAOShop
         return $res;
     }
 
-    function filters($filter)
+    function filters($filter, $total_prod = 0, $items_page = 9)
     {
         $consulta = "SELECT e.*, cat.tipo_categoria, es.nombre_estadio, ciu.nombre_ciudad, eq1.nombre_equipo AS local_name, eq2.nombre_equipo AS visitor_name
             FROM eventos e
@@ -157,7 +157,7 @@ class DAOShop
             }
         }
 
-        $consulta .= " ORDER BY e.fecha_evento ASC";
+        $consulta .= " ORDER BY e.fecha_evento ASC LIMIT " . ((int)$total_prod) . ", " . ((int)$items_page);
 
         $conexion = connect::con();
         $res = $conexion->prepare($consulta);
@@ -166,5 +166,81 @@ class DAOShop
         connect::close($conexion);
 
         return $retrArray;
+
+        
     }
+    function count_events()
+    {
+        $sql = "SELECT COUNT(DISTINCT id_evento) AS total FROM eventos";
+        $conexion = connect::con();
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute();
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        connect::close($conexion);
+        return $res['total'];
+    }
+
+    function count_events_filters($filter)
+    {
+        $consulta = "SELECT COUNT(DISTINCT e.id_evento) AS total
+            FROM eventos e
+            LEFT JOIN categorias_evento cat ON e.id_categoria = cat.id_categoria
+            LEFT JOIN estadios es ON e.id_estadio = es.id_estadio
+            LEFT JOIN ciudades ciu ON es.id_ciudad = ciu.id_ciudad
+            LEFT JOIN equipos eq1 ON e.id_equipo_local = eq1.id_equipo
+            LEFT JOIN equipos eq2 ON e.id_equipo_visitante = eq2.id_equipo";
+
+        for ($i = 0; $i < count($filter); $i++) {
+            $column = $filter[$i][0];
+            $value = $filter[$i][1];
+            $condition = "";
+
+            if ($column == 'tipo_categoria') {
+                $condition = "cat.tipo_categoria = '" . $value . "'";
+            }
+            else if ($column == 'nombre_equipo') {
+                if (is_array($value)) {
+                    $teams = implode("','", $value);
+                    $condition = "(eq1.nombre_equipo IN ('" . $teams . "') OR eq2.nombre_equipo IN ('" . $teams . "'))";
+                }
+                else {
+                    $condition = "(eq1.nombre_equipo = '" . $value . "' OR eq2.nombre_equipo = '" . $value . "')";
+                }
+            }
+            else if ($column == 'estado') {
+                $condition = "e.estado = '" . $value . "'";
+            }
+            else if ($column == 'id_estadio') {
+                if (is_array($value)) {
+                    $stadiums = implode("','", $value);
+                    $condition = "e.id_estadio IN ('" . $stadiums . "')";
+                }
+                else {
+                    $condition = "e.id_estadio = '" . $value . "'";
+                }
+            }
+            else if ($column == 'nombre_ciudad') {
+                $condition = "ciu.nombre_ciudad = '" . $value . "'";
+            }
+            else {
+                $condition = "e." . $column . " = '" . $value . "'";
+            }
+
+            if ($i == 0) {
+                $consulta .= " WHERE " . $condition;
+            }
+            else {
+                $consulta .= " AND " . $condition;
+            }
+        }
+
+        $conexion = connect::con();
+        $res = $conexion->prepare($consulta);
+        $res->execute();
+        $retrArray = $res->fetch(PDO::FETCH_ASSOC);
+        connect::close($conexion);
+
+        return $retrArray['total'];
+    }
+    
 }

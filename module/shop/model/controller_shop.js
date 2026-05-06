@@ -6,10 +6,11 @@ function loadEvents() {
         ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events");
     }
 }
-
 var leafletAssetsPromise = null;
 var eventsLeafletMap = null;
 var detailLeafletMap = null;
+var swiperInstances = [];
+var shopSearchRequest = 0;
 
 function ensureLeafletLoaded() {
     if (window.L && typeof window.L.map === 'function') {
@@ -97,9 +98,12 @@ function geolocalizado_all(shop) {
 
     ensureLeafletLoaded().then(function () {
         if (eventsLeafletMap) {
+            eventsLeafletMap.off();
             eventsLeafletMap.remove();
+            eventsLeafletMap = null;
         }
 
+        $('#map_events').empty();
         eventsLeafletMap = L.map('map_events').setView([38.8397, -0.61667], 6);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -173,14 +177,29 @@ function geolocalizado_all(shop) {
     });
 }
 
-function ajaxForSearch(url, filter) {
-    ajaxPromise(url, 'POST', 'JSON', { 'filter': filter })
+function ajaxForSearch(url, filter, offset = 0, limit = 9) {
+    var requestId = ++shopSearchRequest;
+    var dataPayload = { 'filter': filter, 'offset': offset, 'limit': limit };
+    ajaxPromise(url, 'POST', 'JSON', dataPayload)
         .then(function (data) {
+            if (requestId !== shopSearchRequest) {
+                return;
+            }
             console.log(data);
+
+            if (swiperInstances.length > 0) {
+                swiperInstances.forEach(function(s) { 
+                    try { s.destroy(true, true); } catch(e){} 
+                });
+                swiperInstances = [];
+            }
+
             $('#content_shop_events').empty();
 
-            if (data == "error") {
+            if (data == "error" || !Array.isArray(data) || data.length === 0) {
                 $('#content_shop_events').html('<h3>No se encontraron eventos.</h3>');
+                $('#map_events_title').hide();
+                $('#map_events').hide();
             } else {
                 for (let row = 0; row < data.length; row++) {
                     let mainImgUrl = data[row].imagen_evento.replace(
@@ -188,14 +207,12 @@ function ajaxForSearch(url, filter) {
                         '/tickiticket_v7'
                     );
 
-                    // Construir slides del carrusel
                     let slides = `
                         <div class="swiper-slide">
                             <div style="width:100%; height:100%; background-image:url(${mainImgUrl}); background-size:cover; background-position:center;"></div>
                         </div>
                     `;
 
-                    // Añadir imágenes adicionales del evento
                     if (data[row].imagenes && data[row].imagenes.length > 0) {
                         for (let i = 0; i < data[row].imagenes.length; i++) {
                             let imgUrl = data[row].imagenes[i].ruta_imagen.replace(
@@ -210,7 +227,7 @@ function ajaxForSearch(url, filter) {
                         }
                     }
 
-                    let swiperClass = 'swiper-event-' + data[row].id_evento;
+                    let swiperClass = 'swiper-event-' + requestId + '-' + data[row].id_evento;
 
                     $('<div></div>')
                         .attr({ 'id': data[row].id_evento, 'class': 'event_card' })
@@ -221,9 +238,9 @@ function ajaxForSearch(url, filter) {
                                     <div class="swiper-wrapper">
                                         ${slides}
                                     </div>
-                                    <div class="swiper-pagination swiper-pagination-${data[row].id_evento}"></div>
-                                    <div class="swiper-button-prev swiper-prev-${data[row].id_evento}"></div>
-                                    <div class="swiper-button-next swiper-next-${data[row].id_evento}"></div>
+                                    <div class="swiper-pagination swiper-pagination-${requestId}-${data[row].id_evento}"></div>
+                                    <div class="swiper-button-prev swiper-prev-${requestId}-${data[row].id_evento}"></div>
+                                    <div class="swiper-button-next swiper-next-${requestId}-${data[row].id_evento}"></div>
                                 </div>
                                 <div style="padding:20px;">
                                     <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:8px; color:#000;">${data[row].nombre_evento}</h3>
@@ -236,27 +253,92 @@ function ajaxForSearch(url, filter) {
                             </div>
                         `);
 
-                    // Inicializar Swiper para este evento
-                    new Swiper('.' + swiperClass, {
-                        loop: true,
+                    var s = new Swiper('.' + swiperClass, {
+                        loop: false,
+                        rewind: true,
                         pagination: {
-                            el: '.swiper-pagination-' + data[row].id_evento,
+                            el: '.swiper-pagination-' + requestId + '-' + data[row].id_evento,
                             clickable: true
                         },
                         navigation: {
-                            nextEl: '.swiper-next-' + data[row].id_evento,
-                            prevEl: '.swiper-prev-' + data[row].id_evento
-                        },
-                        autoplay: {
-                            delay: 4000,
-                            disableOnInteraction: false,
-                        },
+                            nextEl: '.swiper-next-' + requestId + '-' + data[row].id_evento,
+                            prevEl: '.swiper-prev-' + requestId + '-' + data[row].id_evento
+                        }
                     });
+                    swiperInstances.push(s);
+
+                    // Version estable sin Swiper, por si hay que volver atras:
+                    // <div style="height:220px; width:100%; background-image:url(${mainImgUrl}); background-size:cover; background-position:center;"></div>
                 }
                 geolocalizado_all(data);
             }
         }).catch(function (err) {
             console.log('Error shop:', err);
+        });
+}
+function pagination() { 
+    var limit = 9;
+    var currentPage = 1;
+    var filtro = JSON.parse(localStorage.getItem('filter') || false);
+    $('#pagination').empty();
+    //NumEvents
+    var url = filtro 
+        ? "/tickiticket_v7/module/shop/controller/controller_shop.php?op=filters_count" 
+        : "/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events_count";
+
+    ajaxPromise(url, 'POST', 'JSON', { 'filter': filtro })
+        .then(function (NumEvents) {
+            var totalPages = Math.ceil(NumEvents / limit);
+            // console.log('Total eventos:', NumEvents, 'Total páginas:', totalPages);
+            
+            var pagerHtml = '<div id="pagination" style="display:flex; justify-content:center; align-items:center; gap:10px; margin-top:28px; width:100%; grid-column:1 / -1;">';
+            for (var i = 1; i <= totalPages; i++) {
+                var activeStyle = i === currentPage
+                    ? 'background:#22c55e; color:#07110b; box-shadow:0 8px 18px rgba(34,197,94,0.28); transform:translateY(-1px);'
+                    : 'background:#f8fafc; color:#0f172a; box-shadow:0 4px 12px rgba(15,23,42,0.08);';
+                pagerHtml += '<button class="page" id="' + i + '" style="min-width:42px; height:42px; padding:0 14px; ' + activeStyle + ' border:1px solid #cbd5e1; border-radius:8px; cursor:pointer; font-weight:800; font-size:0.95rem; transition:all 0.18s ease;">' + i + '</button>';
+            }
+            pagerHtml += '</div>';
+
+            $('#pagination').remove();
+            $(pagerHtml).insertAfter('#list_events_shop');
+
+            $('#pagination').off('click', '.page').on('click', '.page', function () {
+                var page = $(this).attr('id');
+                currentPage = parseInt(page);
+                $('.page').css({
+                    'background': '#f8fafc',
+                    'color': '#0f172a',
+                    'box-shadow': '0 4px 12px rgba(15,23,42,0.08)',
+                    'transform': 'translateY(0)'
+                });
+                $(this).css({
+                    'background': '#22c55e',
+                    'color': '#07110b',
+                    'box-shadow': '0 8px 18px rgba(34,197,94,0.28)',
+                    'transform': 'translateY(-1px)'
+                });
+                // console.log('Página seleccionada:', page);
+                // ˙˙˙˙˙˙˙˙˙˙˙˙˙˙˙˙˙˙
+                var offset = limit * (page - 1);
+                // console.log('Offset:', offset, 'Limit:', limit);
+                //
+                var urlList = filtro 
+                    ? "/tickiticket_v7/module/shop/controller/controller_shop.php?op=filter" 
+                    : "/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events";
+                
+                console.log('urlList:', urlList);
+                ajaxForSearch(urlList, filtro, offset, limit);
+
+                    // var filtro = JSON.parse(localStorage.getItem('filter') || false);
+                    // if (filtro) {   
+                    //     ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=filter", filtro);
+                    // } else {
+                    //     ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events");
+                    // }
+            });
+        }).catch(function (err) {
+            console.log('Error al obtener NumEvents:', err);
         });
 }
 
@@ -441,6 +523,7 @@ function initShopList() {
     print_filters();
     loadStadiumFilters();
     filter_button();
+    pagination();
 }
 
 function openDetailFromStorage() {
@@ -651,6 +734,6 @@ $(document).ready(function () {
     if (openDetailFromStorage()) {
         return;
     }
-
+//pagination();
     initShopList();
 });

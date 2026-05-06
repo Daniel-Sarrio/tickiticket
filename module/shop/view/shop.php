@@ -11,7 +11,7 @@
 
         <!-- Grid de eventos -->
         <div id="content_shop_events"
-            style="flex:1; display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:24px;"></div>
+            style="flex:1; min-width:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:24px;"></div>
     </div>
 
     <div id="detail_event" style="display:none;">
@@ -22,6 +22,29 @@
         <div class="date_event_detail"></div>
     </div>
 </section>
+<style>
+    @media (max-width: 1100px) {
+        #content_shop_events {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+    }
+
+    @media (max-width: 760px) {
+        #list_events_shop {
+            flex-direction: column !important;
+        }
+
+        .filters {
+            width: 100% !important;
+            max-width: none !important;
+        }
+
+        #content_shop_events {
+            width: 100% !important;
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
