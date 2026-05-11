@@ -1,6 +1,7 @@
 function loadEvents() {
-    var filtro = JSON.parse(localStorage.getItem('filter') || false);
-    if (filtro) {
+    var filtro = JSON.parse(localStorage.getItem('filter') || '[]');
+    var hasFilters = Array.isArray(filtro) && filtro.length > 0;
+    if (hasFilters) {
         ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=filter", filtro);
     } else {
         ajaxForSearch("/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events");
@@ -280,10 +281,11 @@ function ajaxForSearch(url, filter, offset = 0, limit = 9) {
 function pagination() { 
     var limit = 9;
     var currentPage = 1;
-    var filtro = JSON.parse(localStorage.getItem('filter') || false);
+    var filtro = JSON.parse(localStorage.getItem('filter') || '[]');
+    var hasFilters = Array.isArray(filtro) && filtro.length > 0;
     $('#pagination').empty();
     //NumEvents
-    var url = filtro 
+    var url = hasFilters
         ? "/tickiticket_v7/module/shop/controller/controller_shop.php?op=filters_count" 
         : "/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events_count";
 
@@ -324,7 +326,7 @@ function pagination() {
                 var offset = limit * (page - 1);
                 // console.log('Offset:', offset, 'Limit:', limit);
                 //
-                var urlList = filtro 
+                var urlList = hasFilters
                     ? "/tickiticket_v7/module/shop/controller/controller_shop.php?op=filter" 
                     : "/tickiticket_v7/module/shop/controller/controller_shop.php?op=all_events";
                 
@@ -565,6 +567,15 @@ function clicks() {
         $('#map_events_title').hide();
         $('#map_events').hide();
         loadDetails(id_evento);
+        ajaxPromise('/tickiticket_v7/module/shop/controller/controller_shop.php?op=contador_eventos_visitados', 'POST', 'JSON', {
+            id_evento: id_evento
+        })
+        .then(function (data) {
+        console.log(data);
+            }).catch(function () {
+            console.log('Error, no se pudo actualizar el evento');
+        });
+
     });
 
     $(document).on('click', '#btn_back', function () {
@@ -779,7 +790,10 @@ function apply_filters() {
 
     // Persistir en localStorage
     if (cat) localStorage.setItem('filter_category', cat);
+    else localStorage.removeItem('filter_category');
+
     if (estado) localStorage.setItem('filter_estado', estado);
+    else localStorage.removeItem('filter_estado');
     localStorage.setItem('filter_estadio', JSON.stringify(stadiums));
     localStorage.setItem('filter_equipo', JSON.stringify(teams));
     localStorage.setItem('filter_price_min', priceMin);
@@ -797,7 +811,11 @@ function apply_filters() {
     if (order) filter.push(['order', order]);
     if (extras.length > 0) filter.push(['extras', extras]);
 
-    localStorage.setItem('filter', JSON.stringify(filter));
+    if (filter.length > 0) {
+        localStorage.setItem('filter', JSON.stringify(filter));
+    } else {
+        localStorage.removeItem('filter');
+    }
     window.location.reload();
 }
 $(document).ready(function () {

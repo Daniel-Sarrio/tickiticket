@@ -36,6 +36,23 @@ switch ($_GET['op']) {
             echo json_encode("error");
         }
         break;
+    case 'homePagePopularGames':
+        try {
+            $daohome = new DAOHome();
+            $SelectPopularGames = $daohome->select_popular_games();
+        }
+        catch (Exception $e) {
+            echo json_encode("error");
+            exit();
+        }
+
+        if (!empty($SelectPopularGames)) {
+            echo json_encode($SelectPopularGames);
+        }
+        else {
+            echo json_encode("error");
+        }
+        break;
     case 'homePageCategories':
         try {
             $daohome = new DAOHome();

@@ -102,6 +102,20 @@ class DAOShop
         return $res;
     }
 
+    function count_more_visit($id_evento)
+    {
+        $sql = "UPDATE eventos
+            SET cont = cont + 1
+            WHERE id_evento = :id_evento";
+
+        $conexion = connect::con();
+        $stmt = $conexion->prepare($sql);
+        $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+        $ok = $stmt->execute();
+        connect::close($conexion);
+        return $ok;
+    }
+
     function count_eventos_relacionados($id_categoria, $id_evento)
     {
         $sql = "SELECT COUNT(*) AS total FROM eventos
@@ -279,5 +293,19 @@ class DAOShop
 
         return $retrArray['total'];
     }
+    function contador_evento_visitado($id_evento)
+{
+    $sql = "UPDATE eventos
+        SET cont = cont + 1
+        WHERE id_evento = :id_evento";
+
+    $conexion = connect::con();
+    $stmt = $conexion->prepare($sql);
+    $stmt->bindParam(':id_evento', $id_evento, PDO::PARAM_INT);
+    $ok = $stmt->execute();
+    connect::close($conexion);
+    return $ok;
+}
+
     
 }

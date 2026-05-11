@@ -38,6 +38,44 @@ function loadEventos() {
         });
 }
 
+function loadPopularEventos() {
+    ajaxPromise('/tickiticket_v7/module/home/controller/controller_home.php?op=homePagePopularGames', 'GET', 'JSON')
+        .then(function (data) {
+            for (let row = 0; row < data.length; row++) {
+                let imagenUrl = data[row].imagen_evento.replace(
+                    '/opt/lampp/htdocs/tickiticket_v7',
+                    '/tickiticket_v7'
+                );
+
+                let slide =
+                    "<div class='swiper-slide event-detail' data-event='" + data[row].id_evento + "' style='height:250px; border-radius:12px; overflow:hidden; cursor:pointer; position:relative;'>" +
+                    "<img src='" + imagenUrl + "' style='width:100%; height:100%; object-fit:cover; object-position:center; display:block;' alt='" + data[row].nombre_evento + "'>" +
+                    "<div style='position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(transparent 45%, rgba(0,0,0,0.85)); display:flex; flex-direction:column; justify-content:flex-end; padding:16px;'>" +
+                    "<h3 style='color:white; font-size:1.2rem; font-weight:800; margin:0 0 6px 0;'>" + data[row].nombre_evento + "</h3>" +
+                    "<p style='color:rgba(255,255,255,0.85); font-size:0.9rem; margin:0 0 3px 0;'>" + data[row].fecha_evento + "</p>" +
+                    "<p style='color:#86efac; font-size:0.85rem; margin:0; font-weight:700;'>Visitas: " + data[row].cont + "</p>" +
+                    "</div>" +
+                    "</div>";
+
+                $('#containerPopularGames').append(slide);
+            }
+
+            new Swiper('.swiper-popular-events', {
+                slidesPerView: 1,
+                spaceBetween: 16,
+                autoplay: { delay: 3500, disableOnInteraction: false },
+                pagination: { el: '.swiper-pagination-popular-events', clickable: true },
+                navigation: { nextEl: '.swiper-popular-events .swiper-button-next', prevEl: '.swiper-popular-events .swiper-button-prev' },
+                breakpoints: {
+                    640: { slidesPerView: 2 },
+                    1024: { slidesPerView: 4 }
+                }
+            });
+        }).catch(function (err) {
+            console.log('Error populares:', err);
+        });
+}
+
 function loadCategorias() {
     ajaxPromise('/tickiticket_v7/module/home/controller/controller_home.php?op=homePageCategories', 'GET', 'JSON')
         .then(function (data) {
@@ -145,6 +183,7 @@ function loadEstadios() {
 
 $(document).ready(function () {
     loadEventos();
+    loadPopularEventos();
     loadCategorias();
     loadEquipos();
     loadEstadios();

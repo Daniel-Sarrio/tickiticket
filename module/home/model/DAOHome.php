@@ -4,6 +4,17 @@ include($path . "model/connect.php");
 
 class DAOHome
 {
+    function select_popular_games()
+    {
+        $sql = "SELECT * FROM eventos ORDER BY cont DESC, fecha_evento ASC";
+        $conexion = connect::con();
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute();
+        $res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        connect::close($conexion);
+        return $res;
+    }
+
     function select_all_games()
     {
         // echo json_encode("select_all_events");

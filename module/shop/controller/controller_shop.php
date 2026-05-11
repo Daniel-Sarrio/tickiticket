@@ -147,6 +147,17 @@ switch ($_GET['op']) {
         }
         echo json_encode($res);
         break;
+    case 'contador_eventos_visitados':
+        $id_evento = isset($_POST['id_evento']) ? (int) $_POST['id_evento'] : 0;
+        if ($id_evento <= 0) {
+            echo json_encode(false);
+            break;
+        }
+
+        $daoshop = new DAOShop();
+        $res = $daoshop->count_more_visit($id_evento);
+        echo json_encode($res);
+        break;
     default:
         include($path . "view/inc/error404.php");
         break;
