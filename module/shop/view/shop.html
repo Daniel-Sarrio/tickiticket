@@ -1,6 +1,13 @@
 <section class="max-w-7xl mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <h2 style="font-size:2rem; font-weight:900;">Todos los Eventos</h2>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <label for="order_events_top" style="font-size:0.9rem; font-weight:700;">Ordenar por:</label>
+            <select id="order_events_top" style="padding:8px 10px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.9rem; background:#fff; color:#0f172a;">
+                <option value="">Mas recientes</option>
+                <option value="popular_desc">Mas populares</option>
+            </select>
+        </div>
     </div>
 
     <!-- Layout: filtros a la izquierda, eventos a la derecha -->

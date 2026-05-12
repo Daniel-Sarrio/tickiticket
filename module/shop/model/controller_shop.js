@@ -179,7 +179,7 @@ function geolocalizado_all(shop) {
     });
 }
 
-function ajaxForSearch(url, filter, offset = 0, limit = 9) {
+function ajaxForSearch(url, filter, offset = 0, limit = 9)  {
     var requestId = ++shopSearchRequest;
     var dataPayload = { 'filter': filter, 'offset': offset, 'limit': limit };
     ajaxPromise(url, 'POST', 'JSON', dataPayload)
@@ -629,21 +629,6 @@ function print_filters() {
     var savedExtras = JSON.parse(localStorage.getItem('filter_extras') || '[]');
     var savedTeams = JSON.parse(localStorage.getItem('filter_equipo') || '[]');
 
-    var orderOpts = [
-        { val: '', label: 'Sin ordenar' },
-        { val: 'fecha_asc', label: 'Fecha: proximos' },
-        { val: 'fecha_desc', label: 'Fecha: ultimos' },
-        { val: 'precio_asc', label: 'Precio: menor' },
-        { val: 'precio_desc', label: 'Precio: mayor' }
-    ];
-
-    var orderHtml = orderOpts.map(function (op) {
-        var chk = savedOrder === op.val ? 'checked' : '';
-        return '<label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color:#fff; cursor:pointer;">'
-            + '<input type="radio" class="filter_order_rb" name="filter_order" value="' + op.val + '" ' + chk + ' style="width:15px; height:15px; accent-color:#22c55e;">'
-            + op.label + '</label>';
-    }).join('');
-
     $('<div class="div-filters" style="display:flex; flex-direction:column; gap:16px;"></div>').appendTo('.filters')
         .html(
             '<div style="display:flex; align-items:center; gap:8px;">' +
@@ -689,16 +674,10 @@ function print_filters() {
             '  <input type="range" id="filter_price_max" min="0" max="500" step="5" value="' + savedMax + '"' +
             '    style="width:100%; accent-color:#22c55e; cursor:pointer;">' +
             '</div>' +
-
-            // RADIO BUTTONS ORDENAR POR
-            '<div style="display:flex; flex-direction:column; gap:8px;">' +
-            '  <label style="font-size:0.85rem; font-weight:600; color:#fff;">Ordenar por</label>' +
-            '  <div id="filter_order_container" style="display:flex; flex-direction:column; gap:6px;">' + orderHtml + '</div>' +
-            '</div>' +
-
-
             '<button class="filter_remove" id="Remove_filter" style="width:100%; padding:10px; background:#f1f5f9; color:#0f172a; font-weight:700; border:none; border-radius:8px; cursor:pointer; font-size:0.9rem;">Limpiar</button>'
         );
+
+    $('#order_events_top').val(savedOrder);
 
     // Actualizar label precio en tiempo real
     $('#filter_price_max').on('input', function () {
@@ -743,7 +722,7 @@ function filter_button() {
     });
 
     // Escuchar cambios en todos los filtros
-    $(document).on('change', '.filter_category, .filter_estado, .filter_estadio_cb, .filter_equipo_cb, #filter_price_min, #filter_price_max, .filter_order_rb, .filter_extra_cb', function () {
+    $(document).on('change', '.filter_category, .filter_estado, .filter_estadio_cb, .filter_equipo_cb, #filter_price_min, #filter_price_max, .filter_extra_cb, #order_events_top', function () {
         apply_filters();
     });
 }
@@ -784,7 +763,7 @@ function apply_filters() {
     $('.filter_equipo_cb:checked').each(function () { teams.push(this.value); });
     var priceMin = parseInt($('#filter_price_min').val()) || 0;
     var priceMax = parseInt($('#filter_price_max').val()) || 500;
-    var order = $('input[name="filter_order"]:checked').val() || '';
+    var order = $('#order_events_top').val() || '';
     var extras = [];
     $('.filter_extra_cb:checked').each(function () { extras.push(this.value); });
 

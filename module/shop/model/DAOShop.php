@@ -8,7 +8,7 @@ class DAOShop
     function select_all_events($total_prod, $items_page)
     {
         $sql = "SELECT * FROM eventos 
-                ORDER BY fecha_evento ASC 
+                ORDER BY fecha_evento DESC 
                 LIMIT :total_prod, :items_page";
         $conexion = connect::con();
         $stmt = $conexion->prepare($sql);
@@ -87,7 +87,7 @@ class DAOShop
         $sql = "SELECT * FROM eventos
             WHERE id_categoria = :id_categoria
             AND id_evento <> :id_evento
-            ORDER BY fecha_evento ASC
+            ORDER BY fecha_evento DESC
             LIMIT :inicio, :cantidad";
 
         $conexion = connect::con();
@@ -164,10 +164,24 @@ class DAOShop
             LEFT JOIN equipos eq1 ON e.id_equipo_local = eq1.id_equipo
             LEFT JOIN equipos eq2 ON e.id_equipo_visitante = eq2.id_equipo";
 
+        $order = '';
+        if (is_array($filter)) {
+            for ($j = 0; $j < count($filter); $j++) {
+                if ($filter[$j][0] == 'order') {
+                    $order = $filter[$j][1];
+                    break;
+                }
+            }
+        }
+
         for ($i = 0; $i < count($filter); $i++) {
             $column = $filter[$i][0];
             $value = $filter[$i][1];
             $condition = "";
+
+            if ($column == 'order') {
+                continue;
+            }
 
             if ($column == 'tipo_categoria') {
                 $condition = "cat.tipo_categoria = '" . $value . "'";
@@ -208,7 +222,12 @@ class DAOShop
             }
         }
 
-        $consulta .= " ORDER BY e.fecha_evento ASC LIMIT " . ((int)$total_prod) . ", " . ((int)$items_page);
+        $orderBy = "e.fecha_evento DESC";
+        if ($order == 'popular_desc') {
+            $orderBy = "e.cont DESC, e.fecha_evento DESC";
+        }
+
+        $consulta .= " ORDER BY " . $orderBy . " LIMIT " . ((int)$total_prod) . ", " . ((int)$items_page);
 
         $conexion = connect::con();
         $res = $conexion->prepare($consulta);
