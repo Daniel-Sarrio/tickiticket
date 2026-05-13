@@ -38,6 +38,9 @@ El proyecto permite navegar por eventos destacados, consultar partidos, filtrar 
 - **Servidor local:** XAMPP `(Apache + MySQL)`
 
 ---
+### 🎥 Vista del módulo Home
+
+![Vista del módulo Home](./assets/videos/Home.gif)
 
 ## 🖥️ Funcionalidades principales
 
