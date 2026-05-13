@@ -83,3 +83,12 @@ module/
 │   └── view/
 │       ├── shop.html
 │       └── shop.php
+---
+
+## 🗄️ Base de datos
+
+El proyecto utiliza una base de datos **MySQL** llamada `tickiticket`.
+
+La base de datos almacena toda la información necesaria para mostrar los eventos deportivos en la web: eventos, equipos, estadios, ciudades, categorías, imágenes y servicios extra.
+
+
